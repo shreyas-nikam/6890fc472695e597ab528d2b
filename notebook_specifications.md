@@ -42,9 +42,9 @@ The PIT PD reflects the current default risk of an obligor, incorporating both i
     The probability of default can be modeled using a multivariate logistic regression. The model can be represented as:
     $$P(Default = 1) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 * RatingGrade + \beta_2 * MacroVar_1 + \beta_3 * MacroVar_2 + ...)}}$$
     Where:
-    - $P(Default = 1)$ is the probability of default.
-    - $\beta_0$ is the intercept.
-    - $\beta_1, \beta_2, \beta_3 ...$ are the coefficients for the respective variables (RatingGrade, MacroVar_1, MacroVar_2, ...).
+$P(Default = 1)$ is the probability of default.
+$\beta_0$ is the intercept.
+$\beta_1, \beta_2, \beta_3 ...$ are the coefficients for the respective variables (RatingGrade, MacroVar_1, MacroVar_2, ...).
 
 * **Single-Factor Vasicek Model**
 The Vasicek model is a commonly used model for credit risk. In this case, for stress testing and scenario analysis,
@@ -75,8 +75,8 @@ The PD term structure represents the probability of default over multiple time h
 *   **Formula (hazard function):**
 $$CumulativePD(t) = 1 - e^{-\int_0^t h(s) ds}$$
 where:
-    - $CumulativePD(t)$ is the cumulative probability of default up to time $t$.
-    - $h(s)$ is the hazard function at time $s$
+    - CumulativePD(t) is the cumulative probability of default up to time t.
+    - h(s) is the hazard function at time s
 
 *   **Formula (transition matrix iteration):**
 
