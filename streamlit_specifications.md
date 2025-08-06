@@ -592,7 +592,9 @@ def plot_confusion_matrix(y_true, y_pred, class_names, output_path):
     plt.tight_layout()
     plt.savefig(output_path)
     plt.close()
-
+"""
+Function to generate ROC curves.
+"""
 def plot_roc_curve(y_true, y_pred_proba, output_path, model_name):
     if len(y_true) == 0:
         plt.figure()
@@ -610,4 +612,162 @@ def plot_roc_curve(y_true, y_pred_proba, output_path, model_name):
 
     plt.figure()
     plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
-    plt.plot([0, 1], [0, 1], color='navy',
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(f'Receiver Operating Characteristic for {model_name}')
+    plt.legend(loc="lower right")
+    plt.savefig(output_path)
+    plt.show()
+    plt.close()
+
+"""
+Function to generate and save a precision-recall curve plot.
+"""
+def plot_precision_recall_curve(y_true, y_pred_proba, output_path, model_name):
+    if len(y_true) == 0:
+        plt.figure()
+        plt.title(f'Precision-Recall Curve for {model_name} (No data)')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.plot([0, 1], [0.5, 0.5], linestyle='--', label='Random (AUC = 0.50)') # Baseline for PR curve with no positive samples
+        plt.legend(loc="lower left")
+        plt.savefig(output_path)
+        plt.close()
+        return
+
+    precision, recall, _ = precision_recall_curve(y_true, y_pred_proba)
+    pr_auc = auc(recall, precision)
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(recall, precision, label=f'{model_name} (Area = {pr_auc:.2f})')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Precision-Recall Curve')
+    plt.legend(loc="lower left")
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.savefig(output_path)
+    plt.show()
+    plt.close()
+
+"""
+Function to generate and save a calibration curve plot.
+"""
+def plot_calibration_curve(y_true, y_pred_proba, output_path, model_name):
+    if len(y_true) == 0:
+        plt.figure()
+        plt.title(f'Calibration Curve for {model_name} (No data)')
+        plt.xlabel('Predicted Probability')
+        plt.ylabel('Observed Proportion')
+        plt.plot([0, 1], [0, 1], linestyle='--', label='Perfectly Calibrated')
+        plt.legend()
+        plt.savefig(output_path)
+        plt.close()
+        return
+
+    fraction_of_positives, mean_predicted_value = calibration_curve(y_true, y_pred_proba, n_bins=10)
+
+    plt.figure()
+    plt.plot(mean_predicted_value, fraction_of_positives, 's-', label=model_name)
+    plt.plot([0, 1], [0, 1], linestyle='--', label='Perfectly Calibrated')
+    plt.xlabel('Mean Predicted Probability')
+    plt.ylabel('Fraction of Positives')
+    plt.title(f'Calibration Curve for {model_name}')
+    plt.legend()
+    plt.savefig(output_path)
+    plt.show()
+    plt.close()
+
+"""
+Function to generate a feature importance plot (for Gradient Boosting).
+"""
+def plot_feature_importance(model, feature_names, output_path):
+    if not hasattr(model, 'feature_importances_'):
+        print("Model does not have feature_importances_ attribute.")
+        return
+
+    importances = model.feature_importances_
+
+    # Fix the truth value check for feature_names
+    if not feature_names or len(feature_names) == 0:
+        feature_names_for_plot = [f"feature_{i+1}" for i in range(len(importances))]
+    else:
+        # Ensure the length of importances matches the feature names provided
+        if len(importances) != len(feature_names):
+             print(f"Warning: Mismatch between number of importances ({len(importances)}) and provided feature names ({len(feature_names)}). Using generic feature names.")
+             feature_names_for_plot = [f"feature_{i}" for i in range(len(importances))] # Generic names
+        else:
+            feature_names_for_plot = feature_names
+
+
+    df = pd.DataFrame({'feature': feature_names_for_plot, 'importance': importances})
+    df = df.sort_values('importance', ascending=False)
+
+    plt.figure(figsize=(8, 12))
+    plt.barh(df['feature'], df['importance'])
+    plt.xlabel('Importance')
+    plt.ylabel('Feature')
+    plt.title('Feature Importance (Gradient Boosting)')
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.show()
+    plt.close()
+
+# Get feature importances for Gradient Boosting (if it was the champion or if we want it separately)
+# Ensure the model is the *trained* Gradient Boosting model, not the calibrated one for direct feature_importances_
+if 'Gradient Boosting' in champion_model_name: # Check if GB was the champion or just plot GB feature importance
+    # Need to get the feature names after preprocessing for the GB model
+    # This requires running some data through the preprocessor to get the column names
+    # A simpler way if the preprocessor is the only step that changes columns is to use get_feature_names_out
+
+    # If gb_model is a Pipeline, extract the classifier part and use its feature_importances_
+    gb_classifier_step = gb_model.named_steps['classifier']
+
+    # To get feature names post-preprocessing:
+    # 1. Transform X_train using the preprocessor_GB
+    X_train_transformed = preprocessor_GB.transform(X_train)
+
+    # 2. Get the feature names from the preprocessor.get_feature_names_out()
+    # Note: get_feature_names_out works best when ColumnTransformer knows original column names
+    try:
+        # Pass the DataFrame X_train to get_feature_names_out
+        transformed_feature_names = list(preprocessor_GB.get_feature_names_out(X_train.columns))
+    except AttributeError:
+        # Fallback if get_feature_names_out is not available or causes issues
+        print("Warning: preprocessor_GB.get_feature_names_out() not available. Using generic feature names.")
+        # This can be a more complex mapping for OneHotEncoder, for simplicity use generic names for example
+        transformed_feature_names = [f'feature_{i}' for i in range(X_train_transformed.shape[1])]
+
+    plot_feature_importance(gb_classifier_step, transformed_feature_names, 'artifacts/plots/feature_importance_gb.png')
+    print("Feature importance plot for Gradient Boosting saved to artifacts/plots/feature_importance_gb.png")
+else:
+    print("Gradient Boosting was not the champion model or not specifically requested for feature importance plotting.")
+    print("Skipping feature importance plot for Gradient Boosting.")
+
+"""
+Function to save a numpy array to a file.
+"""
+def save_array(array, file_path):
+    try:
+        np.save(file_path, array)
+    except Exception as e:
+        raise Exception(f"Error saving array to {file_path}: {e}")
+
+# Save train/val/test indices (already done in step 5, but re-confirming here as per spec)
+# These were already saved as: 'artifacts/data/train_indices.npy', 'artifacts/data/val_indices.npy', 'artifacts/data/test_indices.npy'
+# No need to re-run unless indices changed.
+print("Train/Val/Test indices were already saved in step 7.")
+
+# Save sample predictions (for the champion model)
+sample_predictions_df = pd.DataFrame({
+    'ID': y_test.index,
+    'true_default_next_month': y_test,
+    'predicted_pd': y_test_pred_proba,
+    'predicted_class': y_test_pred
+})
+sample_predictions_df.to_csv('artifacts/metrics/sample_predictions.csv', index=False)
+print("Sample predictions saved to artifacts/metrics/sample_predictions.csv")
