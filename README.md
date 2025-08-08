@@ -1,60 +1,48 @@
-# Streamlit Data Explorer and Visualizer
+# QuLab: Probability of Default (PD) Model Development and Evaluation
 
 ## Project Title and Description
 
-This Streamlit application, "Data Explorer and Visualizer," provides a user-friendly interface for exploring and visualizing data from various sources.  It allows users to upload CSV, Excel, or JSON files, or connect to common data sources such as Google Sheets.  Once data is loaded, users can perform various data transformations, explore data summaries, and create interactive visualizations to gain insights.  The application aims to simplify the process of data exploration and analysis for both technical and non-technical users.
+QuLab is a Streamlit application designed to facilitate the development, evaluation, and comparison of Probability of Default (PD) models.  PD models are crucial in financial risk management, quantifying the likelihood that a borrower will default on their debt obligations over a specified time horizon. This application provides an interactive interface to explore different stages of PD model development, including data preparation, model training (Logistic Regression and Gradient Boosting), calibration, threshold selection, and performance evaluation.
+
+This lab uses the UCI Credit Card Default dataset to predict whether a customer will default on their credit card payment next month.
 
 ## Features
 
-*   **Data Loading:**
-    *   Upload data from CSV, Excel (.xlsx, .xls), and JSON files.
-    *   Connect to Google Sheets using a shareable link.
-*   **Data Display:**
-    *   Displays the data in an interactive table.
-    *   Provides options to display basic statistics.
-*   **Data Transformation:**
-    *   Column selection and renaming.
-    *   Basic filtering (equal to, not equal to, greater than, less than).
-    *   Data type conversion (e.g., string to numeric, date to string).
-*   **Data Visualization:**
-    *   Interactive plots using Plotly Express:
-        *   Scatter plots
-        *   Line charts
-        *   Bar charts
-        *   Histograms
-        *   Box plots
-        *   Pie charts
-    *   Customizable plot parameters (e.g., X-axis, Y-axis, color, size).
-*   **Data Download:**
-    *   Download the transformed and cleaned data as a CSV file.
-*   **User-Friendly Interface:**
-    *   Intuitive layout and controls for easy navigation.
-    *   Clear error messages and helpful hints.
+*   **Interactive Data Exploration:** Upload and explore the UCI Credit Card dataset with visualizations and data summaries.
+*   **Data Preparation and Preprocessing:** Clean and transform the data, handling missing values and encoding categorical features.
+*   **Model Training:** Train two different PD models:
+    *   Logistic Regression: A linear model for baseline performance and interpretability.
+    *   Gradient Boosting: A powerful ensemble technique for higher accuracy.
+*   **Model Calibration:** Calibrate model probabilities using Platt scaling for more accurate predictions.
+*   **Threshold Selection:**  Determine an optimal probability threshold using Youden's J statistic on a validation set.
+*   **Performance Evaluation:** Evaluate model performance using various metrics on a held-out test set, including ROC AUC, PR AUC, KS-statistic, Brier Score, and standard classification metrics.
+*   **Model Selection:** Champions challenger framework that selects the champion model based on the PR-AUC score on the validation set.
+*   **Visualization:** Visualize key aspects of model performance, such as calibration curves and ROC curves.
+*   **Reproducibility:** Indices used in the train/val/test split are saved to disk for reproducibility.
+*   **Artifact Saving:** Models, Preprocessors and Metrics are saved to disk.
 
 ## Getting Started
 
 ### Prerequisites
 
-*   **Python:**  Version 3.7 or higher is required.
-*   **Pip:**  Python package installer.  Most Python installations come with pip.
+*   Python 3.7 or higher
+*   Pip (Python package installer)
 
 ### Installation
 
-1.  **Clone the repository (optional):**
+1.  **Clone the repository:**
 
     ```bash
     git clone <repository_url>
     cd <repository_directory>
     ```
 
-2.  **Create a Virtual Environment (recommended):**
+2.  **Create a virtual environment (recommended):**
 
     ```bash
     python -m venv venv
-    # Activate the virtual environment (Windows)
-    venv\Scripts\activate
-    # Activate the virtual environment (macOS/Linux)
-    source venv/bin/activate
+    source venv/bin/activate  # On Linux/macOS
+    venv\Scripts\activate  # On Windows
     ```
 
 3.  **Install the required packages:**
@@ -63,78 +51,102 @@ This Streamlit application, "Data Explorer and Visualizer," provides a user-frie
     pip install -r requirements.txt
     ```
 
-    Create a `requirements.txt` file in your project root with the following dependencies:
+    **`requirements.txt` contents:**
 
-    ```txt
+    ```
     streamlit
     pandas
-    plotly-express
-    openpyxl  # Required for reading excel files
-    gspread  # Required for connecting to Google Sheets (optional, install if you use this feature)
-    oauth2client  # Required for gspread (optional, install if you use this feature)
+    numpy
+    scikit-learn
+    plotly
+    joblib
     ```
 
 ## Usage
 
-1.  **Run the application:**
+1.  **Download the UCI Credit Card Default dataset:**
+
+    Download the `UCI_Credit_Card.csv` file from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients) or a mirror. Make sure that the file is available in the same directory as the `app.py`
+
+2.  **Run the Streamlit application:**
 
     ```bash
     streamlit run app.py
     ```
 
-    (Replace `app.py` with the actual name of your main Streamlit script.)
+3.  **Using the Application:**
 
-2.  **Access the application in your browser:**
-
-    Streamlit will automatically open the application in your default web browser. If it doesn't, you can access it by navigating to the URL displayed in the terminal (usually `http://localhost:8501`).
-
-3.  **Using the application:**
-
-    *   **Data Loading:** Select a data source (CSV, Excel, JSON, or Google Sheets) using the sidebar. Upload a file or provide a Google Sheets link.
-    *   **Data Display:** The loaded data will be displayed in a table. You can choose to display statistics using the provided checkbox.
-    *   **Data Transformation:** Use the provided sidebar widgets to select columns, rename them, filter data, and change data types.
-    *   **Data Visualization:** Select the type of plot you want to create, and then choose the appropriate columns for the X-axis, Y-axis, color, and size.
-    *   **Data Download:** Click the "Download Data as CSV" button to download the transformed data.
+    *   The application will open in your web browser.
+    *   The sidebar provides navigation to different stages of the PD model development pipeline.
+    *   **Data Preparation & EDA:** Upload the CSV file and explore the dataset.
+    *   **Model Training & Calibration:** Train and calibrate Logistic Regression and Gradient Boosting models.
+    *   **Model Evaluation:** Evaluate the trained models and compare their performance.
 
 ## Project Structure
 
 ```
-├── app.py          # Main Streamlit application file
-├── requirements.txt # List of Python dependencies
-├── data/           # (Optional) Directory for example data files
-├── README.md       # This file
-└── .streamlit/     # Streamlit configuration directory (auto-generated)
+QuLab/
+├── app.py                      # Main Streamlit application file
+├── application_pages/
+│   ├── page1.py                # Data Preparation & EDA page
+│   ├── page2.py                # Model Training & Calibration page
+│   ├── page3.py                # Model Evaluation page (Implementation pending)
+├── artifacts/                   # Directory to store models, metrics, and plots
+│   ├── models/
+│   ├── metrics/
+│   ├── plots/
+│   ├── data/
+├── requirements.txt            # List of Python dependencies
+├── README.md                   # This file
+└── UCI_Credit_Card.csv          # UCI Credit Card dataset (download separately)
 ```
 
 ## Technology Stack
 
-*   **Streamlit:**  A Python library for creating interactive web applications for data science and machine learning.
-*   **Pandas:**  A powerful data analysis and manipulation library.
-*   **Plotly Express:** A high-level interface for creating interactive plots.
-*   **openpyxl:** A Python library for reading and writing Excel files.
-*   **gspread:** A Python API for interacting with Google Sheets (optional).
-*   **oauth2client:** A Python library to automate interactions with Google's OAuth 2.0 server (required by gspread).
+*   **Streamlit:**  For creating the interactive web application.
+*   **Pandas:** For data manipulation and analysis.
+*   **NumPy:** For numerical computing.
+*   **Scikit-learn:** For machine learning models, preprocessing, and evaluation.
+*   **Plotly:** For interactive visualizations.
+*   **Joblib:**  For efficient model persistence.
 
 ## Contributing
 
-Contributions are welcome! To contribute to this project, please follow these guidelines:
+(Optional)
+
+We welcome contributions to improve QuLab! Please follow these guidelines:
 
 1.  Fork the repository.
 2.  Create a new branch for your feature or bug fix.
-3.  Make your changes and commit them with clear and descriptive messages.
-4.  Test your changes thoroughly.
-5.  Submit a pull request.
-
-Please ensure your code adheres to the project's coding style and includes appropriate documentation.
+3.  Make your changes and ensure they are well-tested.
+4.  Submit a pull request with a clear description of your changes.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).  See the `LICENSE` file for more information.  (Create a `LICENSE` file in your repository root, containing the MIT License text or other license).
+[MIT License](LICENSE) (Replace with your desired license)
+
+Copyright (c) 2024 \[Your Name/Organization]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ## Contact
 
-If you have any questions or suggestions, please feel free to contact me at:
+[Your Name] - [Your Email]
 
-*   [Your Name]
-*   [Your Email Address]
-*   [Link to your GitHub Profile (Optional)]
+[Link to your GitHub profile]
